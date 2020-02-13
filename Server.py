@@ -19,8 +19,8 @@ def server():
                 while data != 'complete':
                     client_socket.sendall('ok'.encode('utf-8'))
                     data = client_socket.recv(1024)
-                    file.write(data)
                     file.write('\n'.encode('utf-8'))
+                    file.write(data)
 
         else:
             data = client_socket.recv(1024)
