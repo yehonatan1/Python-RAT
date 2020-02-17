@@ -13,8 +13,8 @@ def file_size(path):
 
 
 def send_email(file_name):
-    fromaddr = "yehonatanavi21@gmail.com"
-    toaddr = "avitantan@gmail.com"
+    fromaddr = "From"
+    toaddr = "To"
 
     # instance of MIMEMultipart
     msg = MIMEMultipart()
@@ -59,7 +59,7 @@ def send_email(file_name):
     s.starttls()
 
     # Authentication
-    s.login(fromaddr, "yehonatan123")
+    s.login(fromaddr, "Your Password")
 
     # Converts the Multipart msg into a string
     text = msg.as_string()
