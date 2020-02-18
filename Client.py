@@ -12,22 +12,9 @@ def file_size(path):
     return os.path.getsize(path)
 
 
-def download_file(file_path):
-    with open(file_path, 'wb')as f:
-        print('Open File')
-        while True:
-            data = client_socket.recv(1024)
-            if not data or len(data) < 1024:
-                f.write(data)
-                f.flush()
-                f.close()
-                break
-            f.write(data)
-
-
 def send_email(file_name):
-    fromaddr = "From"
-    toaddr = "To"
+    fromaddr = "Sender"
+    toaddr = "Reciver"
 
     # instance of MIMEMultipart
     msg = MIMEMultipart()
@@ -110,10 +97,10 @@ def client():
         elif 'send email ' in data:
             data = data.replace('send email ', '')
             send_email(data)
-            s.sendall('The Email Was Sent')
+            s.sendall('The Email Was Sent'.encode('utf-8'))
 
         elif 'download file ' in data:
-            data = data.replace('download file ', '')
+            data = s.recv(1024).decode('utf-8')
             with open(data, 'wb')as f:
                 while True:
                     data = s.recv(1024)
