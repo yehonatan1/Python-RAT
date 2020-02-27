@@ -78,8 +78,8 @@ def take_record(record_time, file_to_save):
 
 
 def send_email(file_name):
-    fromaddr = "yehonatanavi21@gmail.com"
-    toaddr = "avitantan@gmail.com"
+    fromaddr = ""
+    toaddr = ""
 
     # instance of MIMEMultipart
     msg = MIMEMultipart()
@@ -124,7 +124,7 @@ def send_email(file_name):
     s.starttls()
 
     # Authentication
-    s.login(fromaddr, "yehonatan123")
+    s.login(fromaddr, )
 
     # Converts the Multipart msg into a string
     text = msg.as_string()
